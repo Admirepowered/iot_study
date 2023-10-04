@@ -1,0 +1,1 @@
+there are some amaing bug in mqtt in sqlite3 bug
