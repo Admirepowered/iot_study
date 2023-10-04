@@ -1,0 +1,137 @@
+该协议的一些主要特性：
+
+发布订阅模式
+简单数据包格式：二进制有效负载
+当前版本：3.1.1（2015 年 12 月）
+该协议基于 TCP 运行
+默认端口：1883/TCP（未加密！）
+
+Publisher: publishes a message to one (or many) topic(s) in the broker.
+Subscriber: subscribes to one (or many) topic(s) in the broker and receives all the messages sent from the publisher.
+Broker: routes all the messages from the publishers to the subscribers.
+Topic: consists of one or more levels that are separated by a a forward slash (e.g., /smartshouse/livingroom/temperature).
+
+Every MQTT packet contains a fixed header (Figure 02).
+
+Bit     7      6     5     4           3     2     1      0
+Byte 1  MQTT Control Packet type       Flags specific to each MQTT Control Packet Type
+Byte 2  Remaining Lenght
+
+
+MQTT 控制包代表类型
+Name
+Value
+Direction of flow
+Description
+Reserved
+0
+Forbidden
+Reserved
+CONNECT
+1
+Client to Server
+Client request to connect to Server
+CONNACK
+2
+Server to Client
+Connect acknowledgment
+Client to Server or
+PUBLISH
+3
+Publish message
+Server to Client
+Client to Server or
+PUBACK
+4
+Publish acknowledgment
+Server to Client
+Client to Server or
+PUBREC
+5
+Publish received (assured delivery part 1)
+Server to Client
+Client to Server or
+PUBREL
+6
+Publish release (assured delivery part 2)
+Server to Client
+Client to Server or
+PUBCOMP
+7
+Publish complete (assured delivery part 3)
+Server to Client
+SUBSCRIBE
+8
+Client to Server
+Client subscribe request
+SUBACK
+9
+Server to Client
+Subscribe acknowledgment
+UNSUBSCRIBE
+10
+Client to Server
+Unsubscribe request
+UNSUBACK
+11
+Server to Client
+Unsubscribe acknowledgment
+PINGREQ
+12
+Client to Server
+PING request
+PINGRESP
+13
+Server to Client
+PINGresponse
+DIsCONNECT
+14
+Client to Server
+Client is disconnecting
+Reserved
+15
+Forbidden
+Reserved
+
+在协议 V3.1 中，您可以使用 MQTT 数据包传递用户名和密码。网络上的加密可以使用 SSL 进行处理，独立于 MQTT 协议本身（值得注意的是，SSL 不是最轻的协议，并且确实会增加大量的网络开销）。可以通过应用程序加密其发送和接收的数据来增加额外的安全性，但这不是协议内置的东西，以便保持简单和轻量级。
+
+CONNECT 请求实现身份验证请求，身份验证可选
+与Sock5类似
+
+python的mqtt请求
+import paho.mqtt.client as mqtt
+def on_connect(client, userdata, flags, rc):
+   print "[+] Connection successful"
+   client.subscribe('#', qos = 1)        # Subscribe to all topics
+   client.subscribe('$SYS/#')            # Broker Status (Mosquitto)
+def on_message(client, userdata, msg):
+   print '[+] Topic: %s - Message: %s' % (msg.topic, msg.payload)
+client = mqtt.Client(client_id = "MqttClient")
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect('SERVER IP HERE', 1883, 60)
+client.loop_forever()
+
+
+A summary of some of the open MQTT servers found in the wild:
+
+Different kinds of IoT devices
+Sensors: Light and temperature values//传感器
+Fitness devices: Fitbit//健康设备
+Health devices: Blood Pressure Monitors//医疗设备
+Location services: Owntracks (really creepy stuff!)//定位
+Home automation kits: SmartThings (Samsung)//智能家居
+
+
+使用python发布mqtt订阅示例
+import paho.mqtt.client as mqtt
+def on_connect(client, userdata, flags, rc):
+   print "[+] Connection success"
+client = mqtt.Client(client_id = "MqttClient")
+client.on_connect = on_connect
+client.connect('IP SERVER HERE', 1883, 60)
+client.publish('smarthouse/garage/door', "{'open':'true'}")
+
+
+
+
